@@ -2,6 +2,24 @@
 
 - hosts: all
   become: true
+  pre_tasks:
+
+  - name: install updates (CentOS)
+    yum:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == "CentOS"
+
+
+  - name: install updates (Ubuntu)
+    apt:
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+
+
+
+- hosts: web_servers
+  become: true
   tasks:
 
   - name: install apache and php for Ubuntu servers
@@ -13,8 +31,11 @@
       update_cache: yes
     when: ansible_distribution == "Ubuntu"
 
+- hosts: db_servers
+  become: true
+  tasks:
   - name: install apache and php for CentOS servers
-    dnf:
+    yum:
       name: 
         - httpd
         - php

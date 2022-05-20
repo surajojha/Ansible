@@ -1,5 +1,5 @@
 [db_servers]
 vagrant@192.168.57.10
-
 [web_servers]
+vagrant@192.168.57.10
 vagrant@192.168.56.10

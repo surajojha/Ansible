@@ -1,0 +1,116 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: install updates (CentOS)
+    yum:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == "CentOS"
+
+
+  - name: start httpd (CentOS)
+    tags: apache,centos,httpd
+    service:
+      name: httpd
+      state: started
+      enabled: yes
+    when: ansible_distribution == "CentOS"
+  
+  - name: install updates (Ubuntu)
+    apt:
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: create DON user
+    tags: always
+    user:
+      name: don
+      groups: root
+  
+  - name: add ssh key for DON
+    tags: always
+    authorized_key:
+      user: don
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKOm43Zoy/6lhyZXveekWV+nlIEtQIXsuWGvExQQKQb1 ansible"
+ 
+  - name: add sudoers file for DON
+    copy:
+      src: sudoer_DON
+      dest: /etc/sudoers.d/DON
+      owner: root
+      group: root
+      mode: 0440
+
+- hosts: workstation
+  become: true
+  tasks:
+
+  - name: install unzip
+    package:
+      name: unzip
+
+  - name: install terraform
+    unarchive:
+      src: https://releases.hashicorp.com/teraform/0.12.28/terraform_0.12.28_linux_amd64.zip
+      dest: /usr/local/bin
+      remote_src: yes
+      mode: 0755
+      owner: root
+      group: root
+
+- hosts: web_servers
+  become: true
+  tasks:
+
+  - name: install apache and php for Ubuntu servers
+    apt:
+      name:
+        - apache2
+        - libapache2-mod-php
+      state: latest
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+  
+  - name: copy default html file for site
+    tags: apache,apache2,httpd
+    copy:
+
+      src: default_site.html
+      dest: /var/www/html/index.html
+      owner: root
+      group: root
+      mode: 0644
+
+
+- hosts: db_servers
+  become: true
+  tasks:
+  - name: install apache and php for CentOS servers
+    yum:
+      name: 
+        - httpd
+        - php
+      state: latest
+    when: ansible_distribution == "CentOS"
+
+  - name: install mariadb package (CentOS)
+    tags: centos,db,mariadb
+    yum:
+      name: mariadb
+      state: latest  
+    when: ansible_distribution == "CentOS"
+
+  - name: install mariandb server
+    tags: db,mariadb,ubuntu
+    apt:
+      name: mariadb-server
+      state: latest
+    when: ansible_distribution == "Ubuntu"

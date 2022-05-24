@@ -1,0 +1,5 @@
+- name: add ssh key for DON
+  tags: always
+  authorized_key:
+    user: don
+    key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKOm43Zoy/6lhyZXveekWV+nlIEtQIXsuWGvExQQKQb1 ansible"

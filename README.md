@@ -1,3 +1,3 @@
 # Ansible
 
-This is my awesome ansible repository
+This is my ansible repository.
